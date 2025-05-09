@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { UserAvatarWithBadge } from "@/components/layout/UserAvatarWithBadge";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ZapIcon, UsersIcon, MessageSquarePlusIcon } from "lucide-react";
+import { ZapIcon, UsersIcon, MessageSquarePlusIcon, SettingsIcon } from "lucide-react";
 
 export default function HomePage() {
   const { user } = useMockAuth();
