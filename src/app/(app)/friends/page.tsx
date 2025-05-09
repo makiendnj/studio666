@@ -1,13 +1,12 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlusIcon, UsersIcon, UserCheckIcon, ListChecksIcon, SearchIcon } from "lucide-react"; // Added more icons
-
-// Placeholder components - these will be fleshed out later
-const MyFriendsList = () => <div className="py-8 text-center text-muted-foreground">Your friends list will appear here. <UsersIcon className="mx-auto mt-4 h-12 w-12 opacity-30"/></div>;
-const FriendRequestsList = () => <div className="py-8 text-center text-muted-foreground">Incoming and outgoing friend requests. <ListChecksIcon className="mx-auto mt-4 h-12 w-12 opacity-30"/></div>;
-const AddFriendSection = () => <div className="py-8 text-center text-muted-foreground">Search and add new friends. <SearchIcon className="mx-auto mt-4 h-12 w-12 opacity-30"/></div>;
+import { UserPlusIcon, UsersIcon, ListChecksIcon, SearchIcon } from "lucide-react";
+import { MyFriendsList } from '@/components/friends/MyFriendsList';
+import { FriendRequestsList } from '@/components/friends/FriendRequestsList';
+import { AddFriendSection } from '@/components/friends/AddFriendSection';
 
 export default function FriendsPage() {
   return (
@@ -15,7 +14,7 @@ export default function FriendsPage() {
       <Card className="bg-card/80 backdrop-blur-sm holographic-border">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-            <Users2Icon className="mr-3 h-8 w-8 text-primary" /> Your Connections
+            <UsersIcon className="mr-3 h-8 w-8 text-primary" /> Your Connections
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             Manage your friends, pending requests, and find new people to connect with.
@@ -23,7 +22,7 @@ export default function FriendsPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="my-friends" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-input/30">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 bg-input/30">
               <TabsTrigger value="my-friends" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 <UsersIcon className="mr-2 h-5 w-5" /> My Friends
               </TabsTrigger>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeftIcon, ShieldAlertIcon, Trash2Icon, WrenchIcon, LoaderCircle } from "lucide-react";
+import { ArrowLeftIcon, ShieldAlertIcon, Trash2Icon, WrenchIcon, LoaderCircle, UsersIcon } from "lucide-react"; // Added UsersIcon
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";

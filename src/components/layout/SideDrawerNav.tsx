@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, ServerIcon, UserIcon, SettingsIcon, Users2Icon, LogOutIcon } from "lucide-react";
+import { HomeIcon, ServerIcon, UserIcon, SettingsIcon, UsersIcon, LogOutIcon } from "lucide-react"; // Changed Users2Icon to UsersIcon
 import { SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AppLogo } from "./AppLogo";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,7 @@ import { Button } from "../ui/button";
 const navItems = [
   { href: "/home", label: "Home", icon: HomeIcon },
   { href: "/servers", label: "Servers", icon: ServerIcon },
-  { href: "/friends", label: "Friends", icon: Users2Icon },
+  { href: "/friends", label: "Friends", icon: UsersIcon }, // Changed Users2Icon to UsersIcon
   { href: "/profile", label: "Profile", icon: UserIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];

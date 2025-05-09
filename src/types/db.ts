@@ -10,6 +10,7 @@ export interface UserProfile {
   isAdmin: boolean;
   isPioneer: boolean;
   createdAt: Timestamp;
+  friends?: string[]; // Array of friend UIDs
   // Add other user-specific fields here
 }
 
@@ -53,4 +54,16 @@ export interface VoiceParticipant {
     avatarSeed: string; // Or actual photoURL
     isMuted: boolean;
     isCameraOn: boolean;
+}
+
+export interface FriendRequest {
+  id: string; // Document ID
+  senderId: string;
+  senderDisplayName: string;
+  senderPhotoURL?: string;
+  receiverId: string;
+  receiverEmail: string; // To help query for user at time of request even if receiver changes email (though UID is primary)
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

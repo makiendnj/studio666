@@ -9,52 +9,41 @@ import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../../AuthenticatedLayoutClientShell";
 import { getChannelDetails } from "@/services/channel";
-import { getUserProfile } from "@/services/user"; // To fetch server members for display
-import { getServerDetails } from "@/services/server"; // To get server members list
-import type { Channel, UserProfile, Server } from "@/types/db";
+import { getUserProfile } from "@/services/user"; 
+import { getServerDetails } from "@/services/server"; 
+import type { Channel, UserProfile } from "@/types/db";
 import { Badge } from "@/components/ui/badge";
-
-
-// Mock participants for UI rendering - real participants would come from WebRTC state
-const mockParticipantsForUI = (members: UserProfile[]): UserProfile[] => {
-  return members.map(member => ({
-    ...member,
-    isMuted: Math.random() > 0.5, // Random mock state
-    isCameraOn: Math.random() > 0.7, // Random mock state
-  }));
-};
-
 
 export default function VoiceChannelPage() {
   const params = useParams();
-  const { firebaseUser, userProfile } = useAuth();
+  const { firebaseUser } = useAuth(); // userProfile not directly needed here for participants if fetched via server
   const serverId = params.serverId as string;
   const channelId = params.channelId as string;
   
   const [channelDetails, setChannelDetails] = useState<Channel | null>(null);
-  const [serverMembers, setServerMembers] = useState<UserProfile[]>([]); // For participant list
+  const [participants, setParticipants] = useState<UserProfile[]>([]); // Changed from serverMembers
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock state for local user controls (UI only, no actual WebRTC)
   const [isMuted, setIsMuted] = React.useState(false);
-  const [isCameraOn, setIsCameraOn] = React.useState(true);
+  const [isCameraOn, setIsCameraOn] = React.useState(true); // Default to camera on for local user
 
   useEffect(() => {
     if (!serverId || !channelId) return;
     setIsLoading(true);
     Promise.all([
       getChannelDetails(serverId, channelId),
-      getServerDetails(serverId).then(server => {
+      getServerDetails(serverId).then(async (server) => {
         if (server && server.members) {
-          return Promise.all(server.members.map(uid => getUserProfile(uid)));
+          const memberProfiles = await Promise.all(server.members.map(uid => getUserProfile(uid)));
+          // Filter out null profiles (e.g., if a user was deleted but UID still in server members)
+          return memberProfiles.filter(p => p !== null) as UserProfile[];
         }
         return [];
       })
     ])
     .then(([channelData, memberProfilesData]) => {
       setChannelDetails(channelData);
-      const validMembers = memberProfilesData.filter(p => p !== null) as UserProfile[];
-      setServerMembers(mockParticipantsForUI(validMembers)); // Using mock for UI state
+      setParticipants(memberProfilesData); 
     })
     .catch(error => console.error("Error fetching voice channel data:", error))
     .finally(() => setIsLoading(false));
@@ -89,33 +78,53 @@ export default function VoiceChannelPage() {
           </h2>
         </div>
         <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/50">
-          {serverMembers.length} Participants
+          {participants.length} Participants
         </Badge>
       </header>
 
       <div className="flex-grow p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
-        {serverMembers.map(participant => (
+        {/* Display current user first with camera state */}
+        {firebaseUser && participants.find(p => p.uid === firebaseUser.uid) && (() => {
+          const currentUserProfile = participants.find(p => p.uid === firebaseUser.uid)!;
+          return (
+             <div key={currentUserProfile.uid} className="relative aspect-video bg-input/50 rounded-lg shadow-lg overflow-hidden flex items-center justify-center holographic-border">
+              {isCameraOn ? (
+                <Avatar className="h-full w-full rounded-none">
+                  <AvatarImage src={currentUserProfile.photoURL || `https://picsum.photos/seed/${currentUserProfile.uid}/300/200`} className="object-cover" data-ai-hint="person portrait"/>
+                  <AvatarFallback className="text-4xl bg-secondary">{currentUserProfile.displayName?.substring(0,2).toUpperCase() || 'ME'}</AvatarFallback>
+                </Avatar>
+              ) : (
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-2 border-primary/50">
+                  <AvatarImage src={currentUserProfile.photoURL || `https://picsum.photos/seed/${currentUserProfile.uid}/100/100`} data-ai-hint="abstract face"/>
+                  <AvatarFallback className="text-2xl sm:text-3xl bg-secondary">{currentUserProfile.displayName?.substring(0,2).toUpperCase() || 'ME'}</AvatarFallback>
+                </Avatar>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 backdrop-blur-sm">
+                <p className="text-xs sm:text-sm text-white truncate flex items-center">
+                  {isMuted ? <MicOffIcon className="h-3 w-3 mr-1 text-red-400"/> : <MicIcon className="h-3 w-3 mr-1 text-green-400"/>}
+                  {currentUserProfile.displayName || currentUserProfile.email} (You)
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Display other participants */}
+        {participants.filter(p => p.uid !== firebaseUser?.uid).map(participant => (
           <div key={participant.uid} className="relative aspect-video bg-input/50 rounded-lg shadow-lg overflow-hidden flex items-center justify-center holographic-border">
-            {(participant as any).isCameraOn ? ( // Cast to any for mock properties
-              <Avatar className="h-full w-full rounded-none">
-                <AvatarImage src={participant.photoURL || `https://picsum.photos/seed/${participant.uid}/300/200`} className="object-cover" data-ai-hint="person portrait"/>
-                <AvatarFallback className="text-4xl bg-secondary">{participant.displayName?.substring(0,2).toUpperCase() || '??'}</AvatarFallback>
-              </Avatar>
-            ) : (
-              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-2 border-primary/50">
-                <AvatarImage src={participant.photoURL || `https://picsum.photos/seed/${participant.uid}/100/100`} data-ai-hint="abstract face"/>
-                <AvatarFallback className="text-2xl sm:text-3xl bg-secondary">{participant.displayName?.substring(0,2).toUpperCase() || '??'}</AvatarFallback>
-              </Avatar>
-            )}
+            {/* For other users, camera is assumed on or show avatar, no dynamic state from mock */}
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-2 border-primary/50">
+              <AvatarImage src={participant.photoURL || `https://picsum.photos/seed/${participant.uid}/100/100`} data-ai-hint="abstract face"/>
+              <AvatarFallback className="text-2xl sm:text-3xl bg-secondary">{participant.displayName?.substring(0,2).toUpperCase() || '??'}</AvatarFallback>
+            </Avatar>
             <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 backdrop-blur-sm">
-              <p className="text-xs sm:text-sm text-white truncate flex items-center">
-                {(participant as any).isMuted ? <MicOffIcon className="h-3 w-3 mr-1 text-red-400"/> : <MicIcon className="h-3 w-3 mr-1 text-green-400"/>}
+              <p className="text-xs sm:text-sm text-white truncate">
                 {participant.displayName || participant.email}
               </p>
             </div>
           </div>
         ))}
-         {serverMembers.length === 0 && <p className="col-span-full text-center text-muted-foreground py-10">No one is in the voice channel yet.</p>}
+         {participants.length === 0 && <p className="col-span-full text-center text-muted-foreground py-10">No one is in the voice channel yet.</p>}
       </div>
 
       <footer className="p-3 border-t border-border/50 sticky bottom-0 bg-card/80 backdrop-blur-md flex items-center justify-center gap-3 sm:gap-4">
