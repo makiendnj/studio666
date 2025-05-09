@@ -1,17 +1,26 @@
 
 "use client";
 
-import { useMockAuth } from "../AuthenticatedLayoutClientShell";
+import { useAuth } from "../AuthenticatedLayoutClientShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { BellIcon, PaletteIcon, ShieldCheckIcon, LogOutIcon, UserCogIcon, InfoIcon, MessageCircleQuestionIcon } from "lucide-react";
+import { BellIcon, PaletteIcon, ShieldCheckIcon, LogOutIcon, UserCogIcon, InfoIcon, MessageCircleQuestionIcon, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
-  const { user, signOut } = useMockAuth();
+  const { userProfile, signOut, isLoading } = useAuth();
+
+  if (isLoading || !userProfile) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2 text-muted-foreground">Loading settings...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-2xl">
@@ -36,7 +45,7 @@ export default function SettingsPage() {
               </Button>
               <div className="flex items-center justify-between p-3 rounded-md border border-border/50">
                 <Label htmlFor="privacy-mode" className="text-muted-foreground">Privacy Mode</Label>
-                <Switch id="privacy-mode" className="data-[state=checked]:bg-accent" />
+                <Switch id="privacy-mode" className="data-[state=checked]:bg-accent" disabled />
               </div>
             </div>
           </section>
@@ -51,11 +60,11 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-md border border-border/50">
                 <Label htmlFor="desktop-notifications" className="text-muted-foreground">Desktop Notifications</Label>
-                <Switch id="desktop-notifications" checked className="data-[state=checked]:bg-accent"/>
+                <Switch id="desktop-notifications" defaultChecked className="data-[state=checked]:bg-accent" disabled/>
               </div>
               <div className="flex items-center justify-between p-3 rounded-md border border-border/50">
                 <Label htmlFor="sound-notifications" className="text-muted-foreground">Notification Sounds</Label>
-                <Switch id="sound-notifications" checked className="data-[state=checked]:bg-accent"/>
+                <Switch id="sound-notifications" defaultChecked className="data-[state=checked]:bg-accent" disabled/>
               </div>
             </div>
           </section>
@@ -67,12 +76,12 @@ export default function SettingsPage() {
             <h2 className="text-xl font-semibold mb-4 text-primary-foreground flex items-center">
               <PaletteIcon className="mr-2 h-6 w-6 text-primary" /> Appearance
             </h2>
-             <Button variant="outline" className="w-full justify-start text-muted-foreground hover:text-accent hover:border-accent">
+             <Button variant="outline" className="w-full justify-start text-muted-foreground hover:text-accent hover:border-accent" disabled>
                Change Theme (Coming Soon...)
             </Button>
           </section>
 
-          {user?.isAdmin && (
+          {userProfile?.isAdmin && (
             <>
               <Separator className="border-border/30" />
               <section>
@@ -94,12 +103,12 @@ export default function SettingsPage() {
               <InfoIcon className="mr-2 h-6 w-6 text-primary" /> About & Support
             </h2>
             <div className="space-y-4">
-               <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary">
-                <Link href="/about">About Reverie</Link>
+               <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary" disabled>
+                <Link href="/about">About Reverie (Coming Soon)</Link>
               </Button>
-              <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary">
+              <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary" disabled>
                 <Link href="/support">
-                  <MessageCircleQuestionIcon className="mr-2 h-5 w-5"/> Help & Support
+                  <MessageCircleQuestionIcon className="mr-2 h-5 w-5"/> Help & Support (Coming Soon)
                 </Link>
               </Button>
             </div>

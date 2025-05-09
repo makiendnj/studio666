@@ -1,40 +1,79 @@
 
 "use client";
-import { useMockAuth } from "../AuthenticatedLayoutClientShell";
+import { useAuth } from "../AuthenticatedLayoutClientShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ShieldCheckIcon, UsersIcon, ServerIcon, BarChartIcon, AlertTriangleIcon, ArrowLeftIcon } from "lucide-react";
+import { ShieldCheckIcon, UsersIcon, ServerIcon, BarChartIcon, AlertTriangleIcon, ArrowLeftIcon, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getTotalUsers, getRecentRegistrations } from "@/services/user";
+import { getTotalServers } from "@/services/server";
+import type { UserProfile } from "@/types/db";
+import { formatDistanceToNow } from 'date-fns';
 
-// Mock data for admin panel - initial empty state
-const mockAdminData = {
-  totalUsers: 0,
-  activeServers: 0,
-  recentRegistrations: [],
-  systemStatus: "Monitoring...", // Initial status
-};
+
+interface AdminData {
+  totalUsers: number;
+  activeServers: number; // Using totalServers as "active" for now
+  recentRegistrations: UserProfile[];
+  systemStatus: string; 
+}
 
 export default function AdminPage() {
-  const { user, isLoading } = useMockAuth();
+  const { userProfile, isLoading: authLoading } = useAuth(); // Changed from user to userProfile
   const router = useRouter();
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  React.useEffect(() => {
-    if (!isLoading && !user?.isAdmin) {
-      router.replace("/home"); // Redirect if not admin
+  useEffect(() => {
+    if (!authLoading && !userProfile?.isAdmin) {
+      router.replace("/home"); 
     }
-  }, [user, isLoading, router]);
+  }, [userProfile, authLoading, router]);
 
-  if (isLoading || !user?.isAdmin) {
+  useEffect(() => {
+    if (userProfile?.isAdmin) {
+      const fetchData = async () => {
+        setIsLoadingData(true);
+        try {
+          const [usersCount, serversCount, registrations] = await Promise.all([
+            getTotalUsers(),
+            getTotalServers(),
+            getRecentRegistrations(5)
+          ]);
+          setAdminData({
+            totalUsers: usersCount,
+            activeServers: serversCount, // Using total as "active"
+            recentRegistrations: registrations,
+            systemStatus: "All systems operational" // Default, can be dynamic later
+          });
+        } catch (error) {
+          console.error("Error fetching admin data:", error);
+          setAdminData({ // Set to empty/error state
+            totalUsers: 0,
+            activeServers: 0,
+            recentRegistrations: [],
+            systemStatus: "Error fetching data"
+          });
+        } finally {
+          setIsLoadingData(false);
+        }
+      };
+      fetchData();
+    }
+  }, [userProfile?.isAdmin]);
+
+  if (authLoading || isLoadingData || !userProfile?.isAdmin || !adminData) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <p className="text-foreground">Loading admin panel or unauthorized...</p>
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+        <p className="ml-3 text-muted-foreground">Loading admin panel...</p>
       </div>
     );
   }
-
+  
   return (
     <div className="container mx-auto py-8">
        <Button variant="ghost" asChild className="mb-6 text-muted-foreground hover:text-primary">
@@ -54,13 +93,13 @@ export default function AdminPage() {
         <CardContent className="space-y-8">
           {/* Stats Overview */}
           <section className="grid md:grid-cols-3 gap-6">
-            <StatCard icon={UsersIcon} title="Total Users" value={mockAdminData.totalUsers.toLocaleString()} color="text-primary" />
-            <StatCard icon={ServerIcon} title="Active Servers" value={mockAdminData.activeServers.toLocaleString()} color="text-accent" />
+            <StatCard icon={UsersIcon} title="Total Users" value={adminData.totalUsers.toLocaleString()} color="text-primary" />
+            <StatCard icon={ServerIcon} title="Total Servers" value={adminData.activeServers.toLocaleString()} color="text-accent" />
             <StatCard 
               icon={BarChartIcon} 
               title="System Status" 
-              value={mockAdminData.systemStatus} 
-              color={mockAdminData.systemStatus === "All systems operational" ? "text-green-400" : "text-muted-foreground"} 
+              value={adminData.systemStatus} 
+              color={adminData.systemStatus === "All systems operational" ? "text-green-400" : "text-muted-foreground"} 
               isTextValue 
             />
           </section>
@@ -72,27 +111,30 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-muted-foreground">User ID</TableHead>
+                    <TableHead className="text-muted-foreground">Display Name</TableHead>
                     <TableHead className="text-muted-foreground">Email</TableHead>
                     <TableHead className="text-muted-foreground">Registration Date</TableHead>
-                    <TableHead className="text-muted-foreground text-right">Actions</TableHead>
+                    <TableHead className="text-muted-foreground text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockAdminData.recentRegistrations.length === 0 ? (
+                  {adminData.recentRegistrations.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
                         No recent registrations to display.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    mockAdminData.recentRegistrations.map((reg: any) => ( // Added type annotation
-                      <TableRow key={reg.id}>
-                        <TableCell className="font-medium text-foreground/90">{reg.id}</TableCell>
+                    adminData.recentRegistrations.map((reg) => (
+                      <TableRow key={reg.uid}>
+                        <TableCell className="font-medium text-foreground/90">{reg.displayName}</TableCell>
                         <TableCell className="text-foreground/90">{reg.email}</TableCell>
-                        <TableCell className="text-foreground/90">{reg.date}</TableCell>
+                        <TableCell className="text-foreground/90">
+                           {reg.createdAt?.seconds ? formatDistanceToNow(new Date(reg.createdAt.seconds * 1000), { addSuffix: true }) : 'N/A'}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-accent">Manage</Button>
+                          {reg.isPioneer && <span className="text-xs text-primary font-semibold">Pioneer</span>}
+                           {/* <Button variant="ghost" size="sm" className="text-primary hover:text-accent">Manage</Button> */}
                         </TableCell>
                       </TableRow>
                     ))
@@ -106,12 +148,12 @@ export default function AdminPage() {
           <section>
             <h2 className="text-xl font-semibold mb-4 text-primary-foreground">Quick Actions</h2>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="text-primary border-primary hover:bg-primary/10">Manage Users</Button>
-              <Button variant="outline" className="text-accent border-accent hover:bg-accent/10">Manage Servers</Button>
-              <Button variant="outline" className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10">View System Logs</Button>
-              <Button variant="outline" className="text-muted-foreground hover:text-primary hover:border-primary">Broadcast Message</Button>
-              <Button variant="destructive" className="col-span-full sm:col-span-1 md:col-span-1">
-                <AlertTriangleIcon className="mr-2 h-4 w-4"/> Emergency System Shutdown (Mock)
+              <Button variant="outline" className="text-primary border-primary hover:bg-primary/10" disabled>Manage Users</Button>
+              <Button variant="outline" className="text-accent border-accent hover:bg-accent/10" disabled>Manage Servers</Button>
+              <Button variant="outline" className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10" disabled>View System Logs</Button>
+              <Button variant="outline" className="text-muted-foreground hover:text-primary hover:border-primary" disabled>Broadcast Message</Button>
+              <Button variant="destructive" className="col-span-full sm:col-span-1 md:col-span-1" disabled>
+                <AlertTriangleIcon className="mr-2 h-4 w-4"/> Emergency System Shutdown
               </Button>
             </div>
           </section>

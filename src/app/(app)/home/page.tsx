@@ -2,15 +2,24 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMockAuth } from "../AuthenticatedLayoutClientShell";
+import { useAuth } from "../AuthenticatedLayoutClientShell";
 import { UserAvatarWithBadge } from "@/components/layout/UserAvatarWithBadge";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ZapIcon, UsersIcon, MessageSquarePlusIcon, SettingsIcon } from "lucide-react";
+import { ZapIcon, UsersIcon, MessageSquarePlusIcon, SettingsIcon, LoaderCircle } from "lucide-react";
 
 export default function HomePage() {
-  const { user } = useMockAuth();
+  const { userProfile, isLoading } = useAuth();
+
+  if (isLoading || !userProfile) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+         <p className="ml-2 text-muted-foreground">Loading home...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -28,12 +37,17 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
           <div className="absolute bottom-0 left-0 p-6">
             <CardTitle className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent drop-shadow-lg">
-              Welcome, {user?.email ? user.email.split('@')[0] : "Explorer"}!
+              Welcome, {userProfile?.displayName || "Explorer"}!
             </CardTitle>
           </div>
         </CardHeader>
         <CardContent className="pt-6 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <UserAvatarWithBadge userEmail={user?.email} isAdmin={user?.isAdmin} isPioneer={user?.isPioneer} />
+          <UserAvatarWithBadge 
+            userEmail={userProfile?.email} 
+            isAdmin={userProfile?.isAdmin} 
+            isPioneer={userProfile?.isPioneer} 
+            photoURL={userProfile?.photoURL}
+          />
           <div className="flex-grow text-center md:text-left">
             <p className="text-lg text-muted-foreground mb-4">
               You&apos;ve successfully entered the ChronoStream. What will you discover today?
@@ -67,7 +81,7 @@ export default function HomePage() {
           title="Discover Channels"
           description="Tune into bustling text channels or join immersive voice streams."
           icon={ZapIcon}
-          link="/servers"
+          link="/servers" // TODO: Link to a specific server or channel discovery page
           actionText="Browse Channels"
           aiHint="communication network"
         />

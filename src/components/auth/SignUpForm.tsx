@@ -9,8 +9,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import type { MockUser } from "@/app/(app)/AuthenticatedLayoutClientShell";
-import { MailIcon, LockIcon, UserPlusIcon } from "lucide-react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { createUserProfile } from "@/services/user";
+import { MailIcon, LockIcon, UserPlusIcon, LoaderCircle } from "lucide-react";
+import { useState } from "react";
 
 const signUpSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -23,16 +26,11 @@ const signUpSchema = z.object({
 
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-// This counter is a simple mock for "first 5 users" logic.
-// In a real app, this state would be managed server-side.
-let userSignupCount = 0; 
-const MAX_PIONEER_USERS = 5;
-
-const ADMIN_EMAIL = "chxrry247@gmail.com"; // Ensure admin email is known for uniqueness check
-
 export function SignUpForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -43,53 +41,51 @@ export function SignUpForm() {
   });
 
   async function onSubmit(values: SignUpFormValues) {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API
+    setIsSubmitting(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
 
-    // Check for email uniqueness
-    const registeredEmailsJSON = localStorage.getItem('reverieRegisteredEmails');
-    let registeredEmails: string[] = registeredEmailsJSON ? JSON.parse(registeredEmailsJSON) : [];
+      if (user) {
+        const userProfile = await createUserProfile(user); // Creates profile with pioneer logic
+        toast({
+          title: "Account Created!",
+          description: `Welcome to Reverie, ${userProfile.displayName}! ${userProfile.isPioneer ? "You're a Pioneer User!" : ""}`,
+        });
+        router.push("/home"); // Auth listener will handle profile sync
+      } else {
+        throw new Error("User not created.");
+      }
 
-    // Ensure admin email is always considered registered if not already in the list
-    if (!registeredEmails.includes(ADMIN_EMAIL)) {
-      registeredEmails.push(ADMIN_EMAIL);
-      // Persist this initial state if it wasn't there (e.g., first run or cleared storage)
-      localStorage.setItem('reverieRegisteredEmails', JSON.stringify(registeredEmails));
-    }
-    
-    if (registeredEmails.includes(values.email)) {
-      form.setError("email", {
-        type: "manual",
-        message: "This email address is already registered.",
-      });
+    } catch (error: any) {
+      console.error("Sign up error:", error);
+      let errorMessage = "An unknown error occurred during sign up.";
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'This email address is already registered.';
+            form.setError("email", { type: "manual", message: errorMessage });
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address format.';
+            form.setError("email", { type: "manual", message: errorMessage });
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Password is too weak. Please choose a stronger password.';
+            form.setError("password", { type: "manual", message: errorMessage });
+            break;
+          default:
+            errorMessage = 'Failed to create account. Please try again.';
+        }
+      }
       toast({
         title: "Sign Up Failed",
-        description: "This email address is already in use. Please try a different email or sign in.",
+        description: errorMessage,
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    userSignupCount++;
-    const isPioneer = userSignupCount <= MAX_PIONEER_USERS;
-
-    const user: MockUser = {
-      email: values.email,
-      isAdmin: false, // New sign-ups are not admins
-      isPioneer,
-    };
-    
-    // Add new email to the list of registered emails and save it
-    registeredEmails.push(values.email);
-    localStorage.setItem('reverieRegisteredEmails', JSON.stringify(registeredEmails));
-    
-    localStorage.setItem('reverieUser', JSON.stringify(user)); 
-
-    toast({
-      title: "Account Created!",
-      description: `Welcome to Reverie, ${values.email}! ${isPioneer ? "You're a Pioneer User!" : ""}`,
-      variant: "default",
-    });
-    router.push("/home");
   }
 
   return (
@@ -104,7 +100,7 @@ export function SignUpForm() {
               <FormControl>
                 <div className="relative">
                   <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input placeholder="you@example.com" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" />
+                  <Input placeholder="you@example.com" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" disabled={isSubmitting} />
                 </div>
               </FormControl>
               <FormMessage />
@@ -120,7 +116,7 @@ export function SignUpForm() {
               <FormControl>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input type="password" placeholder="Create a strong password" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" />
+                  <Input type="password" placeholder="Create a strong password" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" disabled={isSubmitting} />
                 </div>
               </FormControl>
               <FormMessage />
@@ -136,15 +132,15 @@ export function SignUpForm() {
               <FormControl>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input type="password" placeholder="Confirm your password" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" />
+                  <Input type="password" placeholder="Confirm your password" {...field} className="pl-10 bg-input/50 focus:bg-input/70 border-border/50" disabled={isSubmitting} />
                 </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full holographic-glow-primary hover:holographic-glow-accent transition-all duration-300">
-          <UserPlusIcon className="mr-2 h-5 w-5" />
+        <Button type="submit" className="w-full holographic-glow-primary hover:holographic-glow-accent transition-all duration-300" disabled={isSubmitting}>
+          {isSubmitting ? <LoaderCircle className="mr-2 h-5 w-5 animate-spin" /> : <UserPlusIcon className="mr-2 h-5 w-5" />}
           Create Account
         </Button>
       </form>
