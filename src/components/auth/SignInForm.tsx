@@ -18,7 +18,7 @@ const signInSchema = z.object({
 
 type SignInFormValues = z.infer<typeof signInSchema>;
 
-const ADMIN_EMAIL = "admin@chronochat.dev";
+const ADMIN_EMAIL = "chxrry247@gmail.com";
 
 export function SignInForm() {
   const { toast } = useToast();
@@ -96,3 +96,4 @@ export function SignInForm() {
     </Form>
   );
 }
+
