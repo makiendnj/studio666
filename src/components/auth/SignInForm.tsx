@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +20,7 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 const ADMIN_EMAIL = "chxrry247@gmail.com";
+const ADMIN_PASSWORD = "admin456"; // Specific password for the admin user
 
 export function SignInForm() {
   const { toast } = useToast();
@@ -35,11 +37,24 @@ export function SignInForm() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Check for admin credentials
+    if (values.email === ADMIN_EMAIL) {
+      if (values.password !== ADMIN_PASSWORD) {
+        toast({
+          title: "Sign In Failed",
+          description: "Invalid credentials for admin user.",
+          variant: "destructive",
+        });
+        form.setError("password", { type: "manual", message: "Invalid credentials for admin user." });
+        return; // Prevent login if admin credentials don't match
+      }
+    }
+    // For non-admin users, the password validation (min 6 chars) is handled by Zod.
+    // No specific password check for non-admin users in this mock setup.
+
     const user: MockUser = {
       email: values.email,
       isAdmin: values.email === ADMIN_EMAIL,
-      // For demo: first 5 users get pioneer status. This is hard to track client-side.
-      // Let's give pioneer status if not admin and email contains 'pioneer'.
       isPioneer: values.email !== ADMIN_EMAIL && Math.random() < 0.3, // Simplified random pioneer status
     };
     
@@ -96,4 +111,3 @@ export function SignInForm() {
     </Form>
   );
 }
-
