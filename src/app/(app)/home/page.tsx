@@ -17,8 +17,8 @@ export default function HomePage() {
       <Card className="mb-8 bg-card/80 backdrop-blur-sm holographic-border overflow-hidden">
         <CardHeader className="relative p-0">
           <Image 
-            src="https://picsum.photos/seed/chronoheader/1200/300" 
-            alt="ChronoChat Header" 
+            src="https://picsum.photos/seed/reverieheader/1200/300" 
+            alt="Reverie Header" 
             width={1200} 
             height={300} 
             className="w-full h-48 object-cover"
@@ -73,7 +73,7 @@ export default function HomePage() {
         />
         <FeatureCard
           title="Profile & Settings"
-          description="Personalize your ChronoChat identity and fine-tune your experience."
+          description="Personalize your Reverie identity and fine-tune your experience."
           icon={SettingsIcon}
           link="/settings"
           actionText="Go to Settings"

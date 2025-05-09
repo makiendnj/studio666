@@ -35,7 +35,7 @@ export function AuthenticatedLayoutClientShell({ children }: PropsWithChildren) 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('chronoUser');
+    const storedUser = localStorage.getItem('reverieUser'); // Updated localStorage key
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
@@ -47,7 +47,7 @@ export function AuthenticatedLayoutClientShell({ children }: PropsWithChildren) 
   }, [router, pathname]);
 
   const handleSignOut = () => {
-    localStorage.removeItem('chronoUser');
+    localStorage.removeItem('reverieUser'); // Updated localStorage key
     setUser(null);
     router.replace('/auth/sign-in');
   };
@@ -56,7 +56,7 @@ export function AuthenticatedLayoutClientShell({ children }: PropsWithChildren) 
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-lg text-foreground">Loading ChronoChat...</p>
+        <p className="ml-4 text-lg text-foreground">Loading Reverie...</p>
       </div>
     );
   }

@@ -1,3 +1,4 @@
+
 import { SignInForm } from '@/components/auth/SignInForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -10,7 +11,7 @@ export default function SignInPage() {
           Welcome Back
         </CardTitle>
         <CardDescription className="text-center text-muted-foreground">
-          Sign in to continue your journey in ChronoChat.
+          Sign in to continue your journey in Reverie.
         </CardDescription>
       </CardHeader>
       <CardContent>

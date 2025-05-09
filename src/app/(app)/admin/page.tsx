@@ -48,7 +48,7 @@ export default function AdminPage() {
             <ShieldCheckIcon className="mr-3 h-8 w-8 text-red-500" /> Admin Dashboard
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Oversee and manage the ChronoChat universe.
+            Oversee and manage the Reverie universe.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -86,7 +86,7 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    mockAdminData.recentRegistrations.map((reg) => (
+                    mockAdminData.recentRegistrations.map((reg: any) => ( // Added type annotation
                       <TableRow key={reg.id}>
                         <TableCell className="font-medium text-foreground/90">{reg.id}</TableCell>
                         <TableCell className="text-foreground/90">{reg.email}</TableCell>

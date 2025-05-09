@@ -9,7 +9,7 @@ import ParticleBackground from '@/components/layout/ParticleBackground';
 
 
 export const metadata: Metadata = {
-  title: 'ChronoChat',
+  title: 'Reverie',
   description: 'Futuristic communication platform.',
 };
 

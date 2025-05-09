@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export default function CreateServerPage() {
             Create New Server
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Establish your own corner in the ChronoChat universe.
+            Establish your own corner in the Reverie universe.
           </CardDescription>
         </CardHeader>
         <Form {...form}>

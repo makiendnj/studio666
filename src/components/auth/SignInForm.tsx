@@ -58,7 +58,7 @@ export function SignInForm() {
       isPioneer: values.email !== ADMIN_EMAIL && Math.random() < 0.3, // Simplified random pioneer status
     };
     
-    localStorage.setItem('chronoUser', JSON.stringify(user));
+    localStorage.setItem('reverieUser', JSON.stringify(user)); // Updated localStorage key
 
     toast({
       title: "Signed In Successfully!",

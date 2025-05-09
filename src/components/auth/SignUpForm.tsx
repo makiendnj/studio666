@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,11 +52,11 @@ export function SignUpForm() {
       isPioneer,
     };
     
-    localStorage.setItem('chronoUser', JSON.stringify(user));
+    localStorage.setItem('reverieUser', JSON.stringify(user)); // Updated localStorage key
 
     toast({
       title: "Account Created!",
-      description: `Welcome to ChronoChat, ${values.email}! ${isPioneer ? "You're a Pioneer User!" : ""}`,
+      description: `Welcome to Reverie, ${values.email}! ${isPioneer ? "You're a Pioneer User!" : ""}`,
       variant: "default",
     });
     router.push("/home");

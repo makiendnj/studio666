@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMockAuth } from "../AuthenticatedLayoutClientShell";
@@ -20,7 +21,7 @@ export default function SettingsPage() {
             App Settings
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Customize your ChronoChat experience and manage your account.
+            Customize your Reverie experience and manage your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -94,7 +95,7 @@ export default function SettingsPage() {
             </h2>
             <div className="space-y-4">
                <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary">
-                <Link href="/about">About ChronoChat</Link>
+                <Link href="/about">About Reverie</Link>
               </Button>
               <Button variant="outline" asChild className="w-full justify-start text-muted-foreground hover:text-primary hover:border-primary">
                 <Link href="/support">

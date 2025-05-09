@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMockAuth } from "../AuthenticatedLayoutClientShell";
@@ -15,7 +16,7 @@ import React from "react";
 export default function ProfilePage() {
   const { user, signOut } = useMockAuth();
   const { toast } = useToast();
-  const [displayName, setDisplayName] = React.useState(user?.email?.split('@')[0] || "Chrono User");
+  const [displayName, setDisplayName] = React.useState(user?.email?.split('@')[0] || "Reverie User");
   const [bio, setBio] = React.useState("Exploring the timestreams...");
   const [isEditing, setIsEditing] = React.useState(false);
 
@@ -41,7 +42,7 @@ export default function ProfilePage() {
             Your Profile
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Manage your ChronoChat identity and preferences.
+            Manage your Reverie identity and preferences.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AppLogo } from "@/components/layout/AppLogo";
@@ -13,7 +14,7 @@ export default function LandingPage() {
       <main className="max-w-2xl">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-            Welcome to ChronoChat
+            Welcome to Reverie
           </span>
         </h1>
         <p className="text-xl text-muted-foreground mb-10">
@@ -35,7 +36,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="mt-20 text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} ChronoChat. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Reverie. All rights reserved.</p>
         <p className="mt-1">Time waits for no one. Chat now.</p>
       </footer>
     </div>
