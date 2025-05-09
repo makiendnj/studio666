@@ -8,21 +8,19 @@ import { PlusCircleIcon, UsersIcon, Settings2Icon, ArrowRightIcon, LoaderCircle 
 import Image from "next/image";
 import { useAuth } from "../AuthenticatedLayoutClientShell";
 import { useQuery } from "@tanstack/react-query";
-import { getServersForUser, getAllServers } from "@/services/server"; // Using getAllServers for now, can scope to user later
+import { getServersForUser } from "@/services/server"; 
 import type { Server } from "@/types/db";
 
 export default function ServersPage() {
   const { firebaseUser, userProfile } = useAuth();
 
-  // Fetch all servers for now. In a real app, you might fetch servers the user is a member of.
   const { data: servers, isLoading, error } = useQuery<Server[]>({
-    queryKey: ['servers', firebaseUser?.uid], // Re-fetch if user changes
+    queryKey: ['userServers', firebaseUser?.uid], 
     queryFn: async () => {
       if (!firebaseUser) return [];
-      // return getServersForUser(firebaseUser.uid); // If you want to show only user's servers
-      return getAllServers(); // For discoverability, showing all servers
+      return getServersForUser(firebaseUser.uid); 
     },
-    enabled: !!firebaseUser, // Only run query if user is available
+    enabled: !!firebaseUser, 
   });
 
   if (isLoading) {
