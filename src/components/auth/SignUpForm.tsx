@@ -28,6 +28,8 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 let userSignupCount = 0; 
 const MAX_PIONEER_USERS = 5;
 
+const ADMIN_EMAIL = "chxrry247@gmail.com"; // Ensure admin email is known for uniqueness check
+
 export function SignUpForm() {
   const { toast } = useToast();
   const router = useRouter();
@@ -43,6 +45,30 @@ export function SignUpForm() {
   async function onSubmit(values: SignUpFormValues) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API
 
+    // Check for email uniqueness
+    const registeredEmailsJSON = localStorage.getItem('reverieRegisteredEmails');
+    let registeredEmails: string[] = registeredEmailsJSON ? JSON.parse(registeredEmailsJSON) : [];
+
+    // Ensure admin email is always considered registered if not already in the list
+    if (!registeredEmails.includes(ADMIN_EMAIL)) {
+      registeredEmails.push(ADMIN_EMAIL);
+      // Persist this initial state if it wasn't there (e.g., first run or cleared storage)
+      localStorage.setItem('reverieRegisteredEmails', JSON.stringify(registeredEmails));
+    }
+    
+    if (registeredEmails.includes(values.email)) {
+      form.setError("email", {
+        type: "manual",
+        message: "This email address is already registered.",
+      });
+      toast({
+        title: "Sign Up Failed",
+        description: "This email address is already in use. Please try a different email or sign in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     userSignupCount++;
     const isPioneer = userSignupCount <= MAX_PIONEER_USERS;
 
@@ -52,7 +78,11 @@ export function SignUpForm() {
       isPioneer,
     };
     
-    localStorage.setItem('reverieUser', JSON.stringify(user)); // Updated localStorage key
+    // Add new email to the list of registered emails and save it
+    registeredEmails.push(values.email);
+    localStorage.setItem('reverieRegisteredEmails', JSON.stringify(registeredEmails));
+    
+    localStorage.setItem('reverieUser', JSON.stringify(user)); 
 
     toast({
       title: "Account Created!",
