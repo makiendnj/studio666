@@ -1,3 +1,4 @@
+
 "use client";
 import { useMockAuth } from "../AuthenticatedLayoutClientShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,15 +9,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 
-// Mock data for admin panel
+// Mock data for admin panel - initial empty state
 const mockAdminData = {
-  totalUsers: 1258,
-  activeServers: 73,
-  recentRegistrations: [
-    { id: "u101", email: "newuser1@example.com", date: "2024-07-28" },
-    { id: "u102", email: "testuser@example.dev", date: "2024-07-27" },
-  ],
-  systemStatus: "All systems operational",
+  totalUsers: 0,
+  activeServers: 0,
+  recentRegistrations: [],
+  systemStatus: "Monitoring...", // Initial status
 };
 
 export default function AdminPage() {
@@ -58,7 +56,13 @@ export default function AdminPage() {
           <section className="grid md:grid-cols-3 gap-6">
             <StatCard icon={UsersIcon} title="Total Users" value={mockAdminData.totalUsers.toLocaleString()} color="text-primary" />
             <StatCard icon={ServerIcon} title="Active Servers" value={mockAdminData.activeServers.toLocaleString()} color="text-accent" />
-            <StatCard icon={BarChartIcon} title="System Status" value={mockAdminData.systemStatus} color="text-green-400" isTextValue />
+            <StatCard 
+              icon={BarChartIcon} 
+              title="System Status" 
+              value={mockAdminData.systemStatus} 
+              color={mockAdminData.systemStatus === "All systems operational" ? "text-green-400" : "text-muted-foreground"} 
+              isTextValue 
+            />
           </section>
 
           {/* Recent Registrations */}
@@ -75,16 +79,24 @@ export default function AdminPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockAdminData.recentRegistrations.map((reg) => (
-                    <TableRow key={reg.id}>
-                      <TableCell className="font-medium text-foreground/90">{reg.id}</TableCell>
-                      <TableCell className="text-foreground/90">{reg.email}</TableCell>
-                      <TableCell className="text-foreground/90">{reg.date}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="text-primary hover:text-accent">Manage</Button>
+                  {mockAdminData.recentRegistrations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                        No recent registrations to display.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    mockAdminData.recentRegistrations.map((reg) => (
+                      <TableRow key={reg.id}>
+                        <TableCell className="font-medium text-foreground/90">{reg.id}</TableCell>
+                        <TableCell className="text-foreground/90">{reg.email}</TableCell>
+                        <TableCell className="text-foreground/90">{reg.date}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-accent">Manage</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </Card>
